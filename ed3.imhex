@@ -1,7 +1,7 @@
 #include <std/mem.pat>
 #include <std/string.pat>
 #include <std/core.pat>
-#pragma pattern_limit 999999;
+#pragma loop_limit 99999
 
 fn is_zero(u32 count) {
     u32 offset = 0;
@@ -17,6 +17,18 @@ fn is_zero(u32 count) {
     }
 
     return true;
+};
+
+fn count_zeros(u32 address) {
+    u32 count = 0;
+    while(!std::mem::eof()) {
+        u8 read_byte = std::mem::read_unsigned($, 1);
+        if (read_byte != 0x00) break;
+        count += 1;
+        $ += 1;
+    }
+    $ = address;
+    return count;
 };
 
 struct SkipRequired<auto Value, auto Padding> {
@@ -39,6 +51,7 @@ struct SkipZero<auto Count> {
 } [[sealed, hidden, no_unique_address]];
 
 struct Skip0 {
+    u32 length = count_zeros($);
     padding[while(!std::mem::eof() && std::mem::read_unsigned($, 1) == 0x0)];
 };
 
@@ -159,11 +172,11 @@ struct WaterElement {
 struct CityElement {
     u32 size = parent.map_width * parent.map_height;
     u8 height_data1[size];
-    if (parent.parent.parent.num != 0xBA) {
+    if (parent.parent.num != 0xBA) {
         u32 num1;
         SkipZero<1>;
         u8 num2;
-        u8 flag1;
+        bool flag1;
         u8 height_data2[size * 4];
         SkipZero<1>;
     }
@@ -176,40 +189,40 @@ struct CityElement {
 };
 
 struct ContactElement {
-    u8 flag1;
-    u8 flag2;
+    bool flag1;
+    bool flag2;
     Vector vectors[3];
     float value;
 };
 
 struct DummyElement {
-    u8 flag1;
+    bool flag1;
     Transform transform;
-    u8 flag2;
-    Transform transforms[7];
+    bool flag2;
+    Transform transforms[10];
 };
 
 struct CameraElement {
-    u8 flag1;
+    bool flag1;
     Transform transform;
-    u8 flag2;
+    bool flag2;
     Transform transforms[11];
 };
 
 struct ObjectElement {
-    u8 flag1;
+    bool flag1;
     SkipZero<1>;
-    u8 flag2;
-    u8 flag3;
+    bool flag2;
+    bool flag3;
     u8 num1;
-    u8 flag4;
-    if (parent.parent.parent.num != 0xAF) {
+    bool flag4;
+    if (parent.parent.num != 0xAF) {
         u8 flag5;
         u8 flag6;
     }
     u8 num2;
     SkipZero<1>;
-    u8 flag7;
+    bool flag7;
     SkipZero<1>;
     bool has_object_name;
     SkipZero<3>;
@@ -217,17 +230,20 @@ struct ObjectElement {
         char object_name[];
     }
     Transform transform;
-    u8 flag8;
-    Transform transforms[6];
+    bool flag8;
+    u32 transform_count = 10;
+    if (flag8)
+        transform_count = 11;
+    Transform transforms[transform_count];
 };
 
 struct LightElement {
     u32 block_count = 8;
-    if (parent.parent.parent.num == 0xB9 || parent.parent.parent.num == 0xAF) {
+    if (parent.parent.num == 0xB9 || parent.parent.num == 0xAF) {
         block_count = 7;
     }
-    u8 flag1;
-    u8 flag2;
+    bool flag1;
+    bool flag2;
     bool is_not_r_light;
     LightBlock blocks[block_count];
 };
@@ -238,10 +254,9 @@ struct SceneElement {
     }
     bool continue_group;
     SkipRequired<"\x01", 1>;
-    Skip01;
     char name[];
     u32 map_width;
-    if (parent.parent.num != 0xAF) {
+    if (parent.num != 0xAF) {
         u32 map_height;
     }
     u32 type;
@@ -258,7 +273,8 @@ struct SceneElement {
     } else if (type == 0x5 || type == 0x6 || type == 0x7 || type == 0x8) {
         LightElement light_element;
     }
-    Skip0;
+    Skip0 skip0;
+    u8 padding_length = skip0.length;
     ScriptElement script_elements[while(
         std::mem::read_unsigned($, 1) != 0x0 &&
         std::mem::read_unsigned($ + 1, 1) == 0x0
@@ -277,7 +293,8 @@ struct Ed3 {
     }
     SkipRequired<"\x00\x6C\x3A", 3>;
     MainCameraElement camera;
-    ElementGroup groups[while(!std::mem::eof() && std::mem::read_unsigned($, 1) == 0x1)];
+    SceneElement scene_elements[while(!std::mem::eof())];
+    
 };
 
 
