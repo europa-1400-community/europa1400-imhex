@@ -198,8 +198,11 @@ struct ContactElement {
 struct DummyElement {
     bool flag1;
     Transform transform;
-    bool flag2;
-    Transform transforms[10];
+    bool flag2; //extra transform?
+    u32 transform_count = 10;
+    if (flag2)
+        transform_count = 11;
+    Transform transforms[transform_count];
 };
 
 struct CameraElement {
@@ -230,7 +233,7 @@ struct ObjectElement {
         char object_name[];
     }
     Transform transform;
-    bool flag8;
+    bool flag8; //extra transform?
     u32 transform_count = 10;
     if (flag8)
         transform_count = 11;
