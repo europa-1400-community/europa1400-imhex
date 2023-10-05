@@ -19,11 +19,23 @@ fn is_zero(u32 count) {
     return true;
 };
 
+
 fn count_zeros(u32 address) {
     u32 count = 0;
     while(!std::mem::eof()) {
         u8 read_byte = std::mem::read_unsigned($, 1);
         if (read_byte != 0x00) break;
+        count += 1;
+        $ += 1;
+    }
+    $ = address;
+    return count;
+};
+fn count_ones(u32 address) {
+    u32 count = 0;
+    while(!std::mem::eof()) {
+        u8 read_byte = std::mem::read_unsigned($, 1);
+        if (read_byte != 0x01) break;
         count += 1;
         $ += 1;
     }
@@ -52,11 +64,12 @@ struct SkipZero<auto Count> {
 
 struct Skip0 {
     u32 length = count_zeros($);
-    padding[while(!std::mem::eof() && std::mem::read_unsigned($, 1) == 0x0)];
+    padding[while(!std::mem::eof() && std::mem::read_unsigned($, 1) == 0x00)];
 };
 
 struct Skip1 {
-    padding[while(!std::mem::eof() && std::mem::read_unsigned($, 1) == 0x1)];
+    u32 length = count_ones($);
+    padding[while(!std::mem::eof() && std::mem::read_unsigned($, 1) == 0x01)];
 };
 
 struct Skip01 {
@@ -256,7 +269,8 @@ struct SceneElement {
         $ -= 1;
     }
     bool continue_group;
-    SkipRequired<"\x01", 1>;
+    Skip1 skip1;
+    u8 ones_count = skip1.length;
     char name[];
     u32 map_width;
     if (parent.num != 0xAF) {
