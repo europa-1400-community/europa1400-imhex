@@ -1,3 +1,7 @@
+// this ImHex pattern file is for Europa 1400 The Guild cty files (in resources/gamedata/Cities/)
+// and savegames (in resources/gamedata/Saves/). In order to work with a savegame it first has to
+// be decompressed with gzip
+
 #pragma pattern_limit 9999999
 #pragma array_limit 9999999
 
@@ -178,6 +182,9 @@ struct BuildingInfo {
     u32 ff_data;
 };
 
+// in savegames some additional data seems to be added to the building struct. I am not yet
+// sure what it encodes or if this can be derived from the entry itself, so I'm depending it on the
+// file format byte for now
 struct BuildingInfoSavegame {
     BuildingType type;
     u8 unknown_data; // some sort of reference maybe?
@@ -206,7 +213,7 @@ struct BkData {
 // they are not used for the actual game.
 // Note: for .cty files the (beginning of) the savegame_city_name has to be correct (up until the null
 // terminator)) to be displayed inn the city select menu. The game seems to be loading all .cty 
-// files and search their header_city_name for the correct strings
+// files and search their header_city_name for the correct strings.
 struct Header {
     char unknown_header[4]; // this seems to be always 0x00010002. Maybe the whole thing is a version number?
     char header_city_name[32]; // only relevant for display in load menu, will not be used when loading. null terminated string which often has junk data after the null terminator
@@ -273,6 +280,54 @@ struct PersonData {
     u8 unidentified_person_data4[87];
 };
 
+struct UnidentifiedStructure2 {
+    u8 u8_array_at_0x11E22[0x118];
+};
+
+struct CityDataPopulation {
+    u32 year;
+    u32 population_count;
+};
+
+struct CityDataRiches {
+    u32 year;
+    u32 rich_percentage;
+};
+
+
+// all values are percentages
+struct CityDataWeather {
+    u32 spring;
+    u32 summer;
+    u32 autumn;
+    u32 winter;
+};
+
+// the city data seems to be basically encoding the data found in the city ini files
+struct CityData {
+    u8 unidentified_data[5];
+    char city_name[32];
+    s32 map_position_x;
+    s32 map_position_y;
+    u8 unidentified_data2;
+    u32 history_start;
+    u32 history_end;
+    u8 unidentified_data3[12];
+    CityDataPopulation population[10];
+    CityDataRiches riches[10];
+    u8 unidentified_data4[2];
+    CityDataWeather percentages_rain;
+    CityDataWeather percentages_snow;
+    u32 percentage_freezing;
+    bool privileges[11];
+    u8 data[375];
+};
+
+
+struct UnidentifiedStructure3 {
+    u8 data[15];
+};
+
 struct MainStructure {
     FileFormatId file_format;
     if (file_format != FileFormatId::FORMAT_TUTORIALCTY) {
@@ -301,6 +356,12 @@ struct MainStructure {
     u8 unknown_data3[2];
     u32 people_count;
     PersonData people_data[people_count];
+    u8 unidentified_data[39];
+    UnidentifiedStructure2 unidentified_structure2[61];
+    CityData city_data[4];
+    u8 unidentified_data2[5];
+    u32 unidentified_structure3_count; // this is not how it works. TODO: find where the structure size is defined instead
+    UnidentifiedStructure3 unidentified_structure3[unidentified_structure3_count];
 };
 
 MainStructure main @ 0x0;
