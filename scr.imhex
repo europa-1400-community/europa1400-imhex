@@ -2,17 +2,6 @@
 // simple fixed-size RGB bitmap format, identical to the format used in savegames.
 // the file is the picture used for autosaves on the loading screen.
 
-struct RGB {
-    u8 data[3];
-};
-
-struct ScreenshotRow{
-    RGB row[160];
-};
-
-// the screenshot is an RGB bitmap 160 pixels wide and 120 pixels high. The color channels are u8.
-struct Screenshot {
-    ScreenshotRow data[120];
-};
+#include <scr.imhex>
 
 Screenshot screenshot @ 0x0;
