@@ -305,7 +305,6 @@ struct CityDataWeather {
 
 // the city data seems to be basically encoding the data found in the city ini files
 struct CityData {
-    u8 unidentified_data[5];
     char city_name[32];
     s32 map_position_x;
     s32 map_position_y;
@@ -320,7 +319,9 @@ struct CityData {
     CityDataWeather percentages_snow;
     u32 percentage_freezing;
     bool privileges[11];
-    u8 data[375];
+    u8 data[372];
+    u32 map_offset_x;
+    u32 map_offset_y;
 };
 
 
@@ -356,10 +357,9 @@ struct MainStructure {
     u8 unknown_data3[2];
     u32 people_count;
     PersonData people_data[people_count];
-    u8 unidentified_data[39];
+    u8 unidentified_data[44];
     UnidentifiedStructure2 unidentified_structure2[61];
     CityData city_data[4];
-    u8 unidentified_data2[5];
     u32 unidentified_structure3_count; // this is not how it works. TODO: find where the structure size is defined instead
     UnidentifiedStructure3 unidentified_structure3[unidentified_structure3_count];
 };
