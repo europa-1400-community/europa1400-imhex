@@ -1,0 +1,7 @@
+// pattern for resources/gamedata/Cities/STANDARD.SCR
+// simple fixed-size RGB bitmap format, identical to the format used in savegames.
+// the file is the picture used for autosaves on the loading screen.
+
+#include <scr.imhex>
+
+Screenshot screenshot @ 0x0;
